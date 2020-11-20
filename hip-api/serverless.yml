@@ -1,0 +1,60 @@
+service:
+  name: healthathon-api
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ap-south-1
+  environment:
+    CUST_TABLE: healthathon-cust-${opt:stage, self:provider.stage}
+    CONSENT_TABLE: healthathon-consent-${opt:stage, self:provider.stage}
+    DATA_TABLE: healthathon-data-${opt:stage, self:provider.stage}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CUST_TABLE}"
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.CONSENT_TABLE}"
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          method: get
+          path: hello/{cmId}
+          cors: true
+          authorizer:
+            arn: arn:aws:cognito-idp:ap-south-1:473460621126:userpool/ap-south-1_6kw8v1CTN
+
+  getCmId:
+    handler: account/getCmId.getCmId
+    events:
+      - http:
+          method: get
+          path: account
+          cors: true
+          authorizer:
+            arn: arn:aws:cognito-idp:ap-south-1:473460621126:userpool/ap-south-1_6kw8v1CTN
+
+  deleteRequest:
+    handler: account/deleteRequest.deleteRequest
+    events:
+      - http:
+          method: delete
+          path: account
+          cors: true
+          authorizer:
+            arn: arn:aws:cognito-idp:ap-south-1:473460621126:userpool/ap-south-1_6kw8v1CTN
+
+  # getLinkStatus:
+  #   handler: account/getLinkStatus.getLinkStatus
+  #   events:
+  #     - http:
+  #         method: get
+  #         path: account/status
+  #         cors: true
+  #         authorizer:
+  #           arn: arn:aws:cognito-idp:ap-south-1:473460621126:userpool/ap-south-1_6kw8v1CTN

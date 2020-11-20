@@ -1,0 +1,59 @@
+service:
+  name: healthathon-db
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+# custom:
+#   webpack:
+#     webpackConfig: ./webpack.config.js
+#     includeModules: true
+
+# # Add the serverless-webpack plugin
+# plugins:
+#   - serverless-webpack
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ap-south-1
+  stage: ${opt:stage, 'dev'}
+  apiGateway:
+    minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
+  environment:
+    CUST_TABLE: healthathon-cust-${opt:stage, self:provider.stage}
+    DATA_TABLE: healthathon-data-${opt:stage, self:provider.stage}
+    CONSENT_TABLE: healthathon-consent-${opt:stage, self:provider.stage}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+
+resources:
+  Resources:
+
+    custTable:
+      Type: 'AWS::DynamoDB::Table'
+      # DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: cust_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: cust_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.CUST_TABLE}
+    consentTable:
+      Type: 'AWS::DynamoDB::Table'
+      # DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: cust_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: cust_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.CONSENT_TABLE}
